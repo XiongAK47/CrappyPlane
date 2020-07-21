@@ -1,12 +1,47 @@
-破烂小飞机-Js
-
-
 var w = c.canvas.width;
 var h = c.canvas.height;
 var state = 0;
 
-//
-var scolor = 200;
+function powerline(x,y){
+  this.x = x;
+  this.y = y;
+  this.update = function(){
+    this.l = power*4;
+  };
+  this.draw = function(){
+  for(var i = 0;i<this.l;i++){
+  c.save();
+  c.translate(this.x,this.y);
+  
+  c.beginPath();
+  c.moveTo(i,0);
+  c.lineTo(i+5,10);
+  c.lineTo(i+6,10);
+  c.lineTo(i+1,0);
+  c.lineTo(i+1,0);
+  this.color = 255-i*2;
+  c.fillStyle= "rgba(255,"+this.color+",0,1)";
+  c.fill();
+  c.restore();
+  }
+  
+  c.save();
+  c.translate(this.x,this.y);
+  c.beginPath();
+  c.moveTo(0,0);
+  c.lineTo(5,10);
+  c.lineTo(125,10);
+  c.lineTo(120,0);
+  c.lineTo(0,0);
+  c.moveTo(40,0);
+  c.lineTo(45,10);
+  c.moveTo(80,0);
+  c.lineTo(85,10);
+  c.stroke();
+  c.restore();
+  };
+  
+}
 
 var booms = [];
 function boomDraw(){
@@ -69,21 +104,13 @@ function boom(x,y){
 }
 
 
-/*function partical(boom){
-  this.bm = boom;
-   this.x = boom.x;
-   this.y = boom.y;
-  
-}*/
-
-
-
+start.xc = 200;
 function start(){
-  
-  this.color = scolor%255;
-  this.r = this.color*1%255;
-  this.g = this.color*2%255;
-  this.b = this.color*3%255;
+ 
+  this.color = start.xc%255;
+  this.r = start.xc%255+30;
+  this.g = this.color%255+20;
+  this.b = this.color%255+10;
   
 
   
@@ -215,7 +242,7 @@ function missilesDraw(){
 
 function missilesDet(){
   for(var i = 0;i<missiles.length;i++){
-    if(missiles[i].die === false){
+    if(missiles[i].die === false&&missiles[i].time<=50){
     missiles[i].detect();
     }else{
       missiles.splice(i,1);
@@ -256,6 +283,7 @@ function missilesSelect(){
       this.num = i;
     }
   }
+  power-=10;
   missiles.push(new missile(this.zx,this.zy,enemies[this.num]));                         
  }
 }
@@ -313,44 +341,36 @@ function bulletsDel(){
 
 var live;
 var score;
-var level;
 var diy;
+var power;
+function powerup(){
+  if(power<=30){
+    power++;
+  }
+}
 function Start(){
  live = 100;
  score = 0;
- level = 100;
  diy = 1;
+ power = 0;
 }
 
 function world(){
  diy = score/100;
 }
 
-var fireSpace = 0;//开火间隔
-function Plane(x,y){
+//开火间隔
+function Plane(){
 
-  this.fireSpace =fireSpace;//开火间隔
-  this.level  = level;//飞机等级
-  this.die = false;
+  this.fireSpace = 0;//开火间隔
+  this.score = 0;
+ this.update = function(){
   this.live = live;
-  this.score = score;
-  this.dying = function(){
-    if(this.live <= 0){
-      this.die = true;
-    }
+  this.x = mouse.x-30;
+  this.y = mouse.y;
   };
-  this.levelUp = function(){
-    /*if(this.score/10>1){
-      this.score = this.score/10;
-      this.level++;
-    }
-    level= this.level;*/
-  };
-  
   this.draw = function(){
-    if(this.die === false){
-    this.x = x;
-    this.y = y;
+   if(this.live >= 0){
       c.save();
       c.translate(this.x,this.y);
 //画飞机--------------------------------------------    
@@ -392,10 +412,8 @@ function Plane(x,y){
        c.fillText("Firing",10,30);
        c.fillStyle = "black";
      }
-    c.fillText("PlaneLocation: "+mouse.x+","+mouse.y+"",w-110, 10); 
-      c.fillText("Score: "+score+"",w-110, 50); 
+    c.fillText("Score: "+score+"",w-110, 10); 
     c.fillText("live: "+this.live+"",10, 10);
-    c.fillText("level: "+level+"",10, 20);
       
   }
   };
@@ -406,13 +424,12 @@ function Plane(x,y){
       bullets.push(new bullet(this));     
     }
   }   
-    fireSpace++;
+    this.fireSpace++;
  };
   this.missile = function(){
-    if(spaceDown===true&&this.fireSpace%10===0){
+    if(spaceDown===true&&power>=10&&this.fireSpace%4===0){
         
        missilesSelect();
-      
     }
   };
 }
@@ -454,6 +471,7 @@ function detecting(){
     
     if (enemies[i].live <= 0 ) {
       boomspush(enemies[i].x,enemies[i].y);
+      powerup();
         // This plane is dead, so remove it from 
         // global array 
       var ds = (enemies[i].type+1)*100;
@@ -541,8 +559,10 @@ function enemy(startX){
   
 //画飞机--------------------------------------------  
   this.draw = function(){
+    this.a = Math.atan(this.dx/this.dy);
     c.save();
     c.translate(this.drx,this.y);
+    c.rotate(-this.a);
     
     c.beginPath();
     
@@ -579,32 +599,22 @@ function enemy(startX){
     c.fillStyle = "red";
     c.fillRect(0,-35,this.live/this.liveLine*6,5);
     c.restore();
-    /*if(this.x+2>=w){
-        this.spacialmove = 1;
-      }*/
  };
 //移动--------------------------------------------
   this.move = function(){
     if(this.y+this.dy<h&&this.die===false){
        this.y+=this.dy;
-      if(this.x+this.dx+30>w&&this.x+this.dx-30<0){
+      if(this.x+30>w||this.x-30<0){
         this.dx = -this.dx;
       }
        this.x+=this.dx;
        this.drx+=this.dx;
-      //special move
-
-
-
-    } // this.y includes the latest plane y
-          
-    if ( this.y + this.dy>= h){
-      // delete this from global enemies[]
+    }           
+    if ( this.y + this.dy>= h){      
       this.die = true;
       this.life = 0;
-
     }
-   };
+  };
 }
 
 function gameOver(){
@@ -646,37 +656,37 @@ var cmTID;
 var i = 0;
 var timeStep0 = 20;
 var timeStep1 = 20;//绘制时间差
+var plane = new Plane(mouse.x,mouse.y);
+var powerline = new powerline(w-120,10);
 
 function updateAll(){
   
   if(state === 0){
-    scolor++;
+ 
     c.clearRect(0,0,w,h);
     start();
-     editionPaint();
+    start.xc++;
+    editionPaint();
+   
      clearTimeout(cmTID);
      cmTID = setTimeout(updateAll, timeStep0); 
   }
   
   if(state == 1){
-  var dp = new Plane(mouse.x-25,mouse.y);
+    
   i++;
   world();
   c.clearRect(0,0,w,h);
-  //c.fillRect(0,0,w,h);
-  ////监测程序
-  c.fillStyle = "black";
-  c.fillText("敌人数量："+enemies.length+"",w-80,20);
-  c.fillText("子弹数量："+bullets.length+"",w-80,30);
-  c.fillText("游戏时间："+i/50+"",w-80,40);
   
   //飞机	
-  dp.draw();
-  dp.fire();
-  dp.missile();
-  dp.levelUp();
+  plane.draw();
+  plane.fire();
+  plane.missile();
+  plane.update();
+  powerline.update();
+  powerline.draw();
   //子弹
-  bulletsDraw(dp);  
+  bulletsDraw(plane);  
   bulletsMove();
   bulletsDel();
   detecting();
@@ -684,7 +694,7 @@ function updateAll(){
   missilesDraw();
   missilesDet();
   //敌人
-  if(i%50===0){//出现频率
+  if(i%200===0){//出现频率
   enemiesSummon();
   }
   enemiesMove();
@@ -695,7 +705,7 @@ function updateAll(){
     boomChange();
     boomDel();
     
-    firesDraw();    
+   firesDraw();    
    gameOver();
 
     editionPaint();
@@ -718,13 +728,13 @@ function updateAll(){
 function editionPaint(){
   var e1 = 3;
   var e2 = 1;
-  var e3 = 4;
+  var e3 = 5;
   c.font = '10pt sans-serif';
   c.fillStyle = "black";
   c.fillText("v"+e1+"."+e2+"."+e3+"",w-60,h-10);
   c.font = '8pt sans-serif';
 }
+ 
+
 Start();
-
 updateAll();
-
