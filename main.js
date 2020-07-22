@@ -1,7 +1,182 @@
 var w = c.canvas.width;
 var h = c.canvas.height;
 var state = 0;
+var worlddiy;
 
+function select(){
+  
+  c.fillText("难度选择",w/2-130,h/2-120);
+  
+  c.fillStyle = "black";
+  c.font = '24pt sans-serif';
+  var xE = Math.abs(w/2-15-mouse.x);
+  var yE = Math.abs(h/2-60-mouse.y);
+  if(yE<7.5&&xE<65){
+    c.fillStyle = "green";
+    if(isMouseDown === true){
+      state = 2;
+      worlddiy = 1;
+    }
+  }
+  c.strokeRect(w/2-80,h/2-80,130,35);
+  c.fillText("    简单",w/2-80,h/2-50);
+  c.fillStyle = "black";
+  var xM = Math.abs(w/2-15-mouse.x);
+  var yM = Math.abs(h/2-5-mouse.y);
+  if(yM<17.5&&xM<65){
+    c.fillStyle = "green";
+    if(isMouseDown === true){
+      state = 2;
+      worlddiy = 4;
+    }
+  }
+  c.strokeRect(w/2-80,h/2-30,130,35);
+  c.fillText("    普通",w/2-80,h/2);
+  c.fillStyle = "black";
+  var xD = Math.abs(w/2-15-mouse.x);
+  var yD = Math.abs(h/2+30-mouse.y);
+  if(yD<17.5&&xD<65){
+    c.fillStyle = "green";
+    if(isMouseDown === true){
+      state = 2;
+      worlddiy = 8;
+    }
+  }
+  c.strokeRect(w/2-80,h/2+20,130,35);
+  c.fillText("    困难",w/2-80,h/2+50);
+  c.fillStyle = "black";
+  //c.strokeRect(w/2-80,h/2-20,130,35);
+  c.fillText("    ",w/2-80,h/2+10);
+  c.fillStyle = "black";
+}
+
+start.xc = 200;
+function start(){
+ 
+  this.color = start.xc%255;
+  this.r = start.xc%255+30;
+  this.g = this.color%25+20;
+  this.b = this.color%25+10;
+  
+
+  
+  c.font = '24pt sans-serif';
+  
+  var xpay = Math.abs(w/2-15-mouse.x);
+  var ypay = Math.abs(h/2-10-mouse.y);
+  if(ypay<17.5&&xpay<65){
+    c.fillStyle = "green";
+  }
+  c.strokeRect(w/2-80,h/2-20,130,35);
+  c.fillText("打赏作者",w/2-80,h/2+10);
+  c.fillStyle = "black";
+  
+  var xstart = Math.abs(w/2-15-mouse.x);
+  var ystart = Math.abs(h/2+45-mouse.y); 
+  
+  if(ystart<17.5&&xstart<65){
+    c.fillStyle = "green";
+    if(isMouseDown === true){
+      state = 1;
+    }
+    
+  }
+  c.strokeRect(w/2-80,h/2+30,130,35);
+  c.fillText("开始游戏",w/2-80,h/2+60);
+  c.fillStyle = "black";
+  
+  c.font = '42pt sans-serif';
+
+  c.fillStyle = "rgba("+this.r+","+this.g+","+this.b+",1)";
+  c.fillText("飞机大战",w/2-130,h/2-120);
+  
+  c.fillStyle = "black";
+  c.font = '8pt sans-serif';
+}
+
+
+//子弹----------------------------------------------
+var bullets = [];
+function bullet(pl){
+  
+  this.dy = 10; 
+  this.plane = pl;
+  this.x = pl.x+17;
+  this.y = pl.y-11;
+  this.die = false;
+  this.dying = function(){
+    this.die = true;
+  };
+  this.draw = function(){
+    var dc = 255-score/50%255;
+    c.fillStyle = "rgba(255,"+dc+",0,1)";
+    c.save();
+    c.translate(this.x,this.y);
+    c.fillRect(0,0,2,4);
+    c.fillRect(23,0,2,4);
+    c.restore();
+  
+  };
+  this.move = function(){ 
+    if(this.y-this.dy >= 0&&this.die!==true){
+      this.y -= this.dy;
+    }else{
+      this.dying();
+    }
+  };
+}
+
+//绘制子弹-------------------------------------------
+function bulletsDraw(pl){
+  for(var i = 0;i < bullets.length;i++){
+    bullets[i].draw();
+  }
+}
+//移动子弹-------------------------------------------
+function bulletsMove(){
+  for(var i = 0;i < bullets.length;i++){
+    bullets[i].move();
+  }
+}
+//子弹删除-------------------------------------------
+function bulletsDel(){
+  for(var i = 0;i < bullets.length;i++){
+    if (bullets[i].y > h || bullets[i].die===true){
+      bullets.splice(i,1);
+    }
+  }
+}
+
+var missiles = [];
+var fires = [];
+function firesDraw(){
+  for(var i=0;i<fires.length;i++){
+    fires[i].draw();
+    if(fires[i].size-1>0){
+      fires[i].sizeChange();
+    }else{
+      fires.splice(i,1);
+    }
+  }
+}
+function fire(x,y){
+  this.size = 10;
+  this.time = 0;
+  this.sizeChange = function(){
+    if(this.time%4===0){
+      this.size--;
+    }
+    this.time++;
+  };
+  this.draw = function(){
+  c.beginPath();
+  this.ds2 = this.size*10%255;
+  c.fillStyle = "rgba(255,"+this.ds2+",0,0.7)";
+  c.arc(x,y,this.size,0,Math.PI*2);
+  c.fill();
+  };
+  
+}
 function powerline(x,y){
   this.x = x;
   this.y = y;
@@ -103,81 +278,6 @@ function boom(x,y){
     };
 }
 
-
-start.xc = 200;
-function start(){
- 
-  this.color = start.xc%255;
-  this.r = start.xc%255+30;
-  this.g = this.color%255+20;
-  this.b = this.color%255+10;
-  
-
-  
-  c.font = '24pt sans-serif';
-  
-  var xstart = Math.abs(w/2-15-mouse.x);
-  var ystart = Math.abs(h/2-10-mouse.y);
-  if(ystart<17.5&&xstart<65){
-    c.fillStyle = "green";
-  }
-  c.strokeRect(w/2-80,h/2-20,130,35);
-  c.fillText("打赏作者",w/2-80,h/2+10);
-  c.fillStyle = "black";
-  
-  var xpay = Math.abs(w/2-15-mouse.x);
-  var ypay = Math.abs(h/2+45-mouse.y); 
-  
-  if(ypay<17.5&&xpay<65){
-    c.fillStyle = "green";
-    if(isMouseDown === true){
-      state = 1;
-    }
-    
-  }
-  c.strokeRect(w/2-80,h/2+30,130,35);
-  c.fillText("开始游戏",w/2-80,h/2+60);
-  c.fillStyle = "black";
-  
-  c.font = '42pt sans-serif';
-
-  c.fillStyle = "rgba("+this.r+","+this.g+","+this.b+",1)";
-  c.fillText("飞机大战",w/2-130,h/2-120);
-  
-  c.fillStyle = "black";
-  c.font = '8pt sans-serif';
-}
-
-var missiles = [];
-var fires = [];
-function firesDraw(){
-  for(var i=0;i<fires.length;i++){
-    fires[i].draw();
-    if(fires[i].size-1>0){
-      fires[i].sizeChange();
-    }else{
-      fires.splice(i,1);
-    }
-  }
-}
-function fire(x,y){
-  this.size = 10;
-  this.time = 0;
-  this.sizeChange = function(){
-    if(this.time%4===0){
-      this.size--;
-    }
-    this.time++;
-  };
-  this.draw = function(){
-  c.beginPath();
-  this.ds2 = this.size*10%255;
-  c.fillStyle = "rgba(255,"+this.ds2+",0,0.7)";
-  c.arc(x,y,this.size,0,Math.PI*2);
-  c.fill();
-  };
-  
-}
 function missile(x,y,em){
   
   this.x = x;
@@ -287,57 +387,6 @@ function missilesSelect(){
   missiles.push(new missile(this.zx,this.zy,enemies[this.num]));                         
  }
 }
-//子弹----------------------------------------------
-var bullets = [];
-function bullet(pl){
-  
-  this.dy = 10; 
-  this.plane = pl;
-  this.x = pl.x+17;
-  this.y = pl.y-11;
-  this.die = false;
-  this.dying = function(){
-    this.die = true;
-  };
-  this.draw = function(){
-    var dc = 255-score/50%255;
-    c.fillStyle = "rgba(255,"+dc+",0,1)";
-    c.save();
-    c.translate(this.x,this.y);
-    c.fillRect(0,0,2,4);
-    c.fillRect(23,0,2,4);
-    c.restore();
-  
-  };
-  this.move = function(){ 
-    if(this.y-this.dy >= 0&&this.die!==true){
-      this.y -= this.dy;
-    }else{
-      this.dying();
-    }
-  };
-}
-
-//绘制子弹-------------------------------------------
-function bulletsDraw(pl){
-  for(var i = 0;i < bullets.length;i++){
-    bullets[i].draw();
-  }
-}
-//移动子弹-------------------------------------------
-function bulletsMove(){
-  for(var i = 0;i < bullets.length;i++){
-    bullets[i].move();
-  }
-}
-//子弹删除-------------------------------------------
-function bulletsDel(){
-  for(var i = 0;i < bullets.length;i++){
-    if (bullets[i].y > h || bullets[i].die===true){
-      bullets.splice(i,1);
-    }
-  }
-}
 
 var live;
 var score;
@@ -348,7 +397,7 @@ function powerup(){
     power++;
   }
 }
-function Start(){
+function Set(){
  live = 100;
  score = 0;
  diy = 1;
@@ -356,7 +405,7 @@ function Start(){
 }
 
 function world(){
- diy = score/100;
+ diy = i2/100*worlddiy;
 }
 
 //开火间隔
@@ -504,14 +553,19 @@ function enemiesMove(){
 function enemiesSummon(){
     var dx = 10;
     this.dx = dx;
+  if(i2%100 === 0){
+    this.dx = w/2;
+     enemies.push(new enemy(this.dx));
+  }else{
     for(var i = 0;i<5;i++){
       enemies.push(new enemy(this.dx));
       this.dx += 80;
+      }
     }
 }
 
 function enemy(startX){
-  var sml = Math.random()*i/100;
+  var sml = Math.random()*diy/5;
   this.type = 0;
   if(sml>11){
     this.type =5;
@@ -538,13 +592,12 @@ function enemy(startX){
   if(sml<=2){
     this.live = 100;
   }
-
-  this.liveLine = this.live/10;
+  
   this.specialmove = 0;
   this.x = startX+30;
   this.drx = this.x-30;
   this.y = 0;
-  this.dy = Math.random()*(i/100+1);
+  this.dy = Math.random()*(i2/100+1);
   this.t = Math.random();
   if(this.t>0.5){
   this.dx = Math.random();
@@ -556,7 +609,12 @@ function enemy(startX){
     this.die = true;
   };
   this.startX = startX;
-  
+  if(i2%1000===0){
+    this.type = 1000;
+    this.live = 1000000000;
+    this.dy = 0.5;
+  }
+  this.liveLine = this.live/10;
 //画飞机--------------------------------------------  
   this.draw = function(){
     this.a = Math.atan(this.dx/this.dy);
@@ -571,6 +629,9 @@ function enemy(startX){
 		c.lineTo(50,10);
 		c.lineTo(10,10);
 		c.lineTo(0,0);
+    if(this.type == 1000){
+      c.fillStyle = "black";
+    }
     if(this.type === 0){
     c.fillStyle= "green";
     }
@@ -602,10 +663,16 @@ function enemy(startX){
  };
 //移动--------------------------------------------
   this.move = function(){
+
     if(this.y+this.dy<h&&this.die===false){
        this.y+=this.dy;
       if(this.x+30>w||this.x-30<0){
         this.dx = -this.dx;
+        if(this.type == 1000){
+          if(this.y-this.dy<0||this.y+this.dy>50){
+            this.dy = -this.dy;
+          }
+        }
       }
        this.x+=this.dx;
        this.drx+=this.dx;
@@ -614,6 +681,7 @@ function enemy(startX){
       this.die = true;
       this.life = 0;
     }
+  
   };
 }
 
@@ -653,7 +721,8 @@ if (evt.keyCode) {
 }
 
 var cmTID;
-var i = 0;
+var i1 = 0;
+var i2 = 0;
 var timeStep0 = 20;
 var timeStep1 = 20;//绘制时间差
 var plane = new Plane(mouse.x,mouse.y);
@@ -671,12 +740,22 @@ function updateAll(){
      clearTimeout(cmTID);
      cmTID = setTimeout(updateAll, timeStep0); 
   }
-  
   if(state == 1){
+    c.clearRect(0,0,w,h);
+    i1++;
+    if(i1>8){
+    select();
+    }
+    clearTimeout(cmTID);
+    cmTID = setTimeout(updateAll, timeStep0); 
+  }
+  
+  if(state == 2){
     
-  i++;
+  i2++;
   world();
   c.clearRect(0,0,w,h);
+   c.fillText(""+diy+"",100,100);
   
   //飞机	
   plane.draw();
@@ -694,7 +773,7 @@ function updateAll(){
   missilesDraw();
   missilesDet();
   //敌人
-  if(i%200===0){//出现频率
+  if(i2%100===0){//出现频率
   enemiesSummon();
   }
   enemiesMove();
@@ -711,7 +790,7 @@ function updateAll(){
     editionPaint();
   clearTimeout(cmTID);
   cmTID = setTimeout(updateAll, timeStep1); 
-    if(state == 2){
+    if(state == 3){
   
     c.font = '48pt sans-serif';
     //c.textAlign = 'center';
@@ -719,7 +798,7 @@ function updateAll(){
     c.font = '24pt sans-serif';
     c.fillText("敌人数量："+enemies.length+"",w/2-80,h/2-100);
     c.fillText("子弹数量："+bullets.length+"",w/2-80,h/2-50);
-    c.fillText("游戏时间："+i/50+"",w/2-80,h/2-150);
+    c.fillText("游戏时间："+i2/50+"",w/2-80,h/2-150);
        editionPaint();
    }
   }
@@ -736,5 +815,5 @@ function editionPaint(){
 }
  
 
-Start();
+Set();
 updateAll();
